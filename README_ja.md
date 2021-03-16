@@ -4,7 +4,7 @@ Ansible Collection - ibm.ibm_zos_core_ftp
 これは、FTP経由で[IBM z/OS core collection](https://galaxy.ansible.com/ibm/ibm_zos_core)の機能の一部を提供するcollectionです。IBM z/OS core collectionの前提条件を満たしていないお客様でもAnsibleを利用できるように開発されました。
 
 
-元のIBM z/OS core collectionが使えるようになったら、このコレクションから元のコレクションへの移行が簡単にできるように設計されています。同じモジュール名やパラメータ名を使用し、同じ戻り値を期待することができます。
+IBM z/OS core collectionが使えるようになったら、このcollectionから元のIBM z/OS core collectionへ簡単に移行できるように設計されています。同じモジュール名やパラメータ名を使用し、同じ戻り値を期待することができます。
 
 
 機能
