@@ -34,6 +34,9 @@ IBM z/OS core FTP collectionをお使いの環境に導入します。
 
 
 ```bash
+git clone https://github.com/IBM/zos-core-collection-ftp.git
+cd zos-core-collection-ftp
+ansible-galaxy collection build
 ansible-galaxy collection install ibm-ibm_zos_core_ftp-1.0.0.tar.gz
 ```
 
