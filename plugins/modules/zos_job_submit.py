@@ -191,7 +191,7 @@ def run_module():
     duration = 0
     if wait is True:
         try:
-            duration = wait_jobs_completion(jobId, wait_time_s, ftp, module)
+            duration = wait_jobs_completion(ftp, module, jobId, wait_time_s)
         except SubmitJCLError as e:
             ftp.quit()
             module.fail_json(msg=repr(e), **result)
