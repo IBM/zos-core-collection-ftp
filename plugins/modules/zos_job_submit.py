@@ -203,8 +203,10 @@ def run_module():
                 max_rc, result.get("jobs")[0].get("ret_code").get("code")
             )
     except SubmitJCLError as e:
+        ftp.quit()
         module.fail_json(msg=repr(e), **result)
     except Exception as e:
+        ftp.quit()
         module.fail_json(msg=repr(e), **result)
     result["duration"] = duration
     if duration == wait_time_s:
