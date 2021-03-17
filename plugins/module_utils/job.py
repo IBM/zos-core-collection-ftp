@@ -3,12 +3,22 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 from tempfile import NamedTemporaryFile
-from os import chmod, path, remove
+from os import chmod, path, remove, environ
 from stat import S_IEXEC, S_IREAD, S_IWRITE
 import json
 import re
 import io
 from jinja2 import Template
+
+def job_card_contents():
+    JOB_CARD_TEMPLATE = """//{{ userid }}1  JOB CLASS={{ class }},MSGLEVEL=(1,1),MSGCLASS={{ msgclass }}
+"""
+    JOB_CARD_CONTENTS = Template(JOB_CARD_TEMPLATE).render({
+        'userid': environ.get("FTP_USERID"),
+        'class': environ.get("FTP_JOB_CLASS"),
+        'msgclass': environ.get("FTP_JOB_MSGCLASS"),
+    })
+    return JOB_CARD_CONTENTS
 
 def job_output(ftp, job_id=None, owner=None, job_name=None, dd_name=None):
     job_name = "*"
@@ -53,7 +63,6 @@ def _get_job_output(ftp, job_id="*", owner="*", job_name="*", dd_name=""):
 
 def _get_job_output_str(ftp, job_id="*", owner="*", job_name="*", dd_name=""):
     get_job_detail_json_jcl_template = """
-//DAIKI1  JOB CLASS=A,MSGLEVEL=(1,1),MSGCLASS=K
 //COPYREXX EXEC PGM=IEBGENER
 //SYSUT2   DD DSN=&&REXXLIB(RXPGM),DISP=(NEW,PASS),
 //         DCB=(DSORG=PO,LRECL=80,RECFM=FB),
@@ -167,7 +176,7 @@ AA
 //SYSTSIN  DD DUMMY
 """
     try:
-        get_job_detail_json_jcl = Template(get_job_detail_json_jcl_template).render({'job_id': job_id, 'owner': owner, 'job_name': job_name, 'dd_name': dd_name})
+        get_job_detail_json_jcl = job_card_contents() + Template(get_job_detail_json_jcl_template).render({'job_id': job_id, 'owner': owner, 'job_name': job_name, 'dd_name': dd_name})
         with io.BytesIO(bytes(get_job_detail_json_jcl, "utf-8")) as f:
             stdout = ftp.storlines("STOR JCL", f)
         get_job_detail_json_job_id = re.search(r'JOB\d{5}', stdout).group()
