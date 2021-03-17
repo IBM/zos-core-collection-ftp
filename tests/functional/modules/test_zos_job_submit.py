@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-import os
+from os import environ
 import sys
 import warnings
 
@@ -12,9 +12,16 @@ import ansible.utils
 import pytest
 from shellescape import quote
 from pprint import pprint
+from jinja2 import Template
 
-JCL_FILE_CONTENTS = """//DAIKI1  JOB CLASS=A,MSGLEVEL=(1,1),MSGCLASS=K
-//UPTIME  EXEC PGM=BPXBATCH
+JOB_CARD_TEMPLATE = """//{{ userid }}1  JOB CLASS={{ class }},MSGLEVEL=(1,1),MSGCLASS={{ msgclass }}
+"""
+JOB_CARD_CONTENTS = Template(JOB_CARD_TEMPLATE).render({
+    'userid': environ.get("FTP_USERID"),
+    'class': environ.get("FTP_JOB_CLASS"),
+    'msgclass': environ.get("FTP_JOB_MSGCLASS"),
+})
+JCL_FILE_CONTENTS = """//UPTIME  EXEC PGM=BPXBATCH
 //STDPARM DD *
 SH uptime
 //STDIN  DD DUMMY
@@ -29,7 +36,7 @@ def test_zos_job_submit_positive_path(ansible_adhoc):
     hosts = ansible_adhoc(inventory='localhost', connection='local')
     hosts.localhost.file(path=TEMP_PATH, state="directory")
     hosts.localhost.shell(
-            cmd="echo {0} > {1}/SAMPLE".format(quote(JCL_FILE_CONTENTS), TEMP_PATH)
+            cmd="echo {0} > {1}/SAMPLE".format(quote(JOB_CARD_CONTENTS + JCL_FILE_CONTENTS), TEMP_PATH)
     )
     print('--- hosts.all ---')
     pprint(hosts.all)
