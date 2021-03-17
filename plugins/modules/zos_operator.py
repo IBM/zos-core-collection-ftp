@@ -1,4 +1,5 @@
 from ansible.module_utils.basic import AnsibleModule
+from ..module_utils.job import job_card_contents
 from os import chmod
 from os import environ
 from tempfile import NamedTemporaryFile
@@ -8,7 +9,6 @@ from jinja2 import Template
 
 def run_operator_command(command, module):
     jcl_template = """
-//DAIKI1  JOB CLASS=A,MSGLEVEL=(1,1),MSGCLASS=K
 //COPYREXX EXEC PGM=IEBGENER
 //SYSUT2   DD DSN=&&REXXLIB(RXPGM),DISP=(NEW,PASS),
 //         DCB=(DSORG=PO,LRECL=80,RECFM=FB),
@@ -64,7 +64,7 @@ jobid=`grep -oP "JOB\d{5}" {{ dump_filename }}`
     chmod(script_file.name, S_IEXEC | S_IREAD | S_IWRITE)
     script_file.file.close()
 
-    jcl = Template(jcl_template).render({'command_str': command})
+    jcl = job_card_contents() + Template(jcl_template).render({'command_str': command})
     jcl_file = NamedTemporaryFile(delete=delete_on_close)
     with open(jcl_file.name, "w") as f:
         f.write(jcl)
