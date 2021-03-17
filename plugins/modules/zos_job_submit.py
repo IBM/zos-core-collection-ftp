@@ -1,6 +1,6 @@
 from ansible.module_utils.basic import AnsibleModule
 # from ansible_collections.ibm.ibm_zos_core_ftp.plugins.module_utils.job import job_output
-from ..module_utils.job import job_output
+from ..module_utils.job import job_output, job_card_contents
 from tempfile import NamedTemporaryFile
 from os import environ
 import re
@@ -16,7 +16,6 @@ JOB_COMPLETION_MESSAGES = ["CC", "ABEND", "SEC"]
 def submit_pds_jcl(src, ftp, module):
     delete_on_close = True
     wrapper_jcl_template = """
-//DAIKI1  JOB CLASS=A,MSGLEVEL=(1,1),MSGCLASS=K
 //COPYREXX EXEC PGM=IEBGENER
 //SYSUT2   DD DSN=&&REXXLIB(RXPGM),DISP=(NEW,PASS),
 //         DCB=(DSORG=PO,LRECL=80,RECFM=FB),
@@ -38,7 +37,7 @@ AA
 //SYSPROC  DD DISP=(OLD,DELETE),DSN=&&REXXLIB
 //SYSTSIN  DD DUMMY
 """
-    wrapper_jcl = Template(wrapper_jcl_template).render({'src': src})
+    wrapper_jcl = job_card_contents() + Template(wrapper_jcl_template).render({'src': src})
     with io.BytesIO(bytes(wrapper_jcl, "utf-8")) as f: 
         stdout = ftp.storlines("STOR JCL", f)
     wrapper_jcl_jobId = re.search(r'JOB\d{5}', stdout).group()
