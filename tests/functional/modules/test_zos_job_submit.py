@@ -21,7 +21,8 @@ JOB_CARD_CONTENTS = Template(JOB_CARD_TEMPLATE).render({
     'class': environ.get("FTP_JOB_CLASS"),
     'msgclass': environ.get("FTP_JOB_MSGCLASS"),
 })
-JCL_FILE_CONTENTS = """//UPTIME  EXEC PGM=BPXBATCH
+JCL_FILE_CONTENTS = """
+//UPTIME  EXEC PGM=BPXBATCH
 //STDPARM DD *
 SH uptime
 //STDIN  DD DUMMY
