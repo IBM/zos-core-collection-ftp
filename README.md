@@ -40,13 +40,15 @@ ansible-galaxy collection install ibm-ibm_zos_core_ftp-1.0.0.tar.gz
 ```
 
 
-Next, set your FTP login information to the environment variables.
+Next, set your FTP login information and job class parameters to the environment variables.
 
 
 ```bash
 export FTP_USERID=ftp_userid
 export FTP_PASSWORD=ftp_password
 export FTP_HOST=ftp_hostname
+export FTP_JOB_CLASS=job_class
+export FTP_JOB_MSGCLASS=job_msgclass
 ```
 
 

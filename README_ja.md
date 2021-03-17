@@ -40,13 +40,15 @@ ansible-galaxy collection build
 ansible-galaxy collection install ibm-ibm_zos_core_ftp-1.0.0.tar.gz
 ```
 
-次に、FTPのログイン情報を環境変数に設定します。
+次に、FTPのログイン情報とジョブのパラメータを環境変数に設定します。
 
 
 ```bash
 export FTP_USERID=ftp_userid
 export FTP_PASSWORD=ftp_password
 export FTP_HOST=ftp_hostname
+export FTP_JOB_CLASS=job_class
+export FTP_JOB_MSGCLASS=job_msgclass
 ```
 
 
