@@ -80,11 +80,11 @@ owner = strip('{{ owner }}','L')
 if (owner <> '') then do
 ISFOWNER=owner
 end
-jobname = strip('{{ jobname }}','L')
+jobname = strip('{{ job_name }}','L')
 if (jobname <> '') then do
 ISFPREFIX=jobname
 end
-ddname = strip('{{ ddname }}','L')
+ddname = strip('{{ dd_name }}','L')
 if (ddname == '?') then do
 ddname = ''
 end
