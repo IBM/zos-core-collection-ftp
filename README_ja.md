@@ -23,6 +23,7 @@ IBM z/OS core collectionが使えるようになったら、このcollectionか�
 
 * z/OS
   * FTPDがz/OS上で動いていること
+  * JESSPOOLリソースにアクセスできるユーザーID
 * Ansible 2.9 or above
   * Python 3
 
@@ -49,6 +50,32 @@ export FTP_PASSWORD=ftp_password
 export FTP_HOST=ftp_hostname
 export FTP_JOB_CLASS=job_class
 export FTP_JOB_MSGCLASS=job_msgclass
+```
+
+
+最後に、JESSPOOLリソースへのアクセスを許可します。
+
+* SAFが無効の場合は、ISFPRMxxのISFSPROGグループのメンバーとしてユーザーIDを定義します。
+* SAFが有効な場合、SDSFクラスの以下のリソースプロファイルのいずれかを定義し、そのプロファイルへのアクセスをユーザーIDに許可します。
+
+
+GROUP.ISFSPROG.SDSFリソースプロファイルへのアクセスを許可するには、次のようにします。
+
+
+```
+RDEFINE SDSF GROUP.ISFSPROG.SDSF UACC(NONE)
+PERMIT GROUP.ISFSPROG.SDSF CLASS(SDSF) ID(userid) ACCESS(READ)
+SETROPTS RACLIST(SDSF) REFRESH
+```
+
+
+ISF\*.\*\*リソースプロファイルへのアクセスを許可するには、次のようにします。
+
+
+```
+RDEFINE SDSF ISF*.** UACC(NONE)
+PERMIT ISF*.** CLASS(SDSF) ID(userid) ACCESS(ALTER)
+SETROPTS RACLIST(SDSF) REFRESH
 ```
 
 

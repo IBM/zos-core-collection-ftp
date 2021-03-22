@@ -22,6 +22,8 @@ Requirement
 
 * z/OS
   * FTPD is running on the z/OS
+  * A userid with access to JESSPOOL resources for SDSF
+
 * Ansible 2.9 or above
   * Python 3
 
@@ -49,6 +51,32 @@ export FTP_PASSWORD=ftp_password
 export FTP_HOST=ftp_hostname
 export FTP_JOB_CLASS=job_class
 export FTP_JOB_MSGCLASS=job_msgclass
+```
+
+
+Finally, give access to the JESSPOOL resources to the userid.
+
+* If SAF is disabled, define the userid as a member of ISFSPROG group in ISFPRMxx.
+* If SAF is enabled, define one of the following resource profiles of the SDSF class and grant access to the profile to the userid.
+
+
+To grant access to GROUP.ISFSPROG.SDSF resource profile.
+
+
+```
+RDEFINE SDSF GROUP.ISFSPROG.SDSF UACC(NONE)
+PERMIT GROUP.ISFSPROG.SDSF CLASS(SDSF) ID(userid) ACCESS(READ)
+SETROPTS RACLIST(SDSF) REFRESH
+```
+
+
+To grant access to ISF\*.\*\* resource profile.
+
+
+```
+RDEFINE SDSF ISF*.** UACC(NONE)
+PERMIT ISF*.** CLASS(SDSF) ID(userid) ACCESS(ALTER)
+SETROPTS RACLIST(SDSF) REFRESH
 ```
 
 
