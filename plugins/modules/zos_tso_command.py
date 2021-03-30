@@ -70,7 +70,7 @@ def run_commands(ftp, wrapper_jcl_template, commands, module):
 
     # Submit the wrapper jcl to execute the tso command
     wrapper_jcl = job_card_contents() + Template(wrapper_jcl_template).render({'command_str': command_str})
-    with io.BytesIO(bytes(wrapper_jcl, "utf-8")) as f: 
+    with io.BytesIO(bytes(wrapper_jcl, "utf-8")) as f:
         stdout = ftp.storlines("STOR JCL", f)
 
     # Get the jobid

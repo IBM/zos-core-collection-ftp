@@ -1,3 +1,6 @@
+import io
+import re
+from ftplib import FTP
 from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.job import job_card_contents
 from os import chmod
@@ -7,7 +10,7 @@ import json
 from stat import S_IEXEC, S_IREAD, S_IWRITE
 from jinja2 import Template
 
-def run_operator_command(command, module):
+def run_operator_command(ftp, command, module):
     jcl_template = """
 //COPYREXX EXEC PGM=IEBGENER
 //SYSUT2   DD DSN=&&REXXLIB(RXPGM),DISP=(NEW,PASS),
@@ -44,32 +47,29 @@ AA
 //SYSPROC  DD DISP=(OLD,DELETE),DSN=&&REXXLIB
 //SYSTSIN  DD DUMMY
 """
-    rc, stdout, stderr = run_commands(jcl_template, command, module)
+    stdout = run_commands(ftp, jcl_template, command, module)
     command_detail_json = json.loads(stdout, strict=False)
     return command_detail_json
 
-def run_commands(jcl_template, command, module):
-    delete_on_close = True
-    dump_file = NamedTemporaryFile(delete=delete_on_close)
+def run_commands(ftp, wrapper_jcl_template, command, module):
+    # Submit the wrapper jcl to execute the tso command
+    wrapper_jcl = job_card_contents() + Template(wrapper_jcl_template).render({'command_str': command})
+    with io.BytesIO(bytes(wrapper_jcl, "utf-8")) as f:
+        stdout = ftp.storlines("STOR JCL", f)
 
-    script_template = """#!/bin/bash
-/usr/bin/curl -D {{ dump_filename }} -B -u {{ ftp_userid }}:{{ ftp_password }} ftp://{{ ftp_host }} --quote "SITE FILETYPE=JES" --upload-file $1
-jobid=`grep -oP "JOB\d{5}" {{ dump_filename }}`
-/usr/bin/curl -B -u {{ ftp_userid }}:{{ ftp_password }} ftp://{{ ftp_host }}/$jobid.5 --quote "SITE FILETYPE=JES" | cut -c 2- | /usr/bin/head -n -2
-"""
-    script = Template(script_template).render({'dump_filename': dump_file.name, 'ftp_userid': environ.get('FTP_USERID'), 'ftp_password': environ.get('FTP_PASSWORD'), 'ftp_host': environ.get('FTP_HOST')})
-    script_file = NamedTemporaryFile(delete=delete_on_close)
-    with open(script_file.name, "w") as f:
-        f.write(script)
-    chmod(script_file.name, S_IEXEC | S_IREAD | S_IWRITE)
-    script_file.file.close()
+    # Get the jobid
+    wrapper_jcl_jobId = re.search(r'JOB\d{5}', stdout).group()
 
-    jcl = job_card_contents() + Template(jcl_template).render({'command_str': command})
-    jcl_file = NamedTemporaryFile(delete=delete_on_close)
-    with open(jcl_file.name, "w") as f:
-        f.write(jcl)
-    rc, stdout, stderr = module.run_command([script_file.name, jcl_file.name])
-    return rc, stdout, stderr
+    # Get the job log with the jobid
+    joblog = []
+    ftp.retrlines("RETR " + wrapper_jcl_jobId + ".5", joblog.append)
+
+    # Get the output from the job log by deleting the last two lines and the first character
+    del joblog[-2:]
+    output = []
+    for line in joblog:
+        output.append(line[1:])
+    return "\n".join(output)
 
 def run_module():
     module_args = dict(
@@ -81,15 +81,24 @@ def run_module():
         changed=False,
     )
 
+    ftp = FTP(
+       environ.get('FTP_HOST'),
+       environ.get('FTP_USERID'),
+       environ.get('FTP_PASSWORD')
+    )
+    ftp.sendcmd("site filetype=jes")
+
     try:
-        rc_message = run_operator_command(module.params["cmd"], module)
+        rc_message = run_operator_command(ftp, module.params["cmd"], module)
         result["rc"] = rc_message.get("rc")
         result["content"] = rc_message.get("content")
     except Exception as e:
+        ftp.quit()
         module.fail_json(
             msg="An unexpected error occurred: {0}".format(repr(e)), **result
         )
     result["changed"] = True
+    ftp.quit()
     module.exit_json(**result)
 
 
