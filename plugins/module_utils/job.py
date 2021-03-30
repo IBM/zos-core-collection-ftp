@@ -16,6 +16,7 @@ def job_card_contents():
         String -- the job card
     """
     job_card_template = """//{{ userid }}1  JOB CLASS={{ class }},MSGLEVEL=(1,1),MSGCLASS={{ msgclass }}
+
 """
     job_card_contens = Template(job_card_template).render({
         'userid': environ.get("FTP_USERID"),
@@ -178,8 +179,7 @@ def _get_job_output_str(ftp, job_id="*", owner="*", job_name="*", dd_name=""):
     Returns:
         tuple[int, str, str] -- RC, STDOUT, and STDERR from the REXX script.
     """
-    get_job_detail_jcl_template = """
-//COPYREXX EXEC PGM=IEBGENER
+    get_job_detail_jcl_template = """//COPYREXX EXEC PGM=IEBGENER
 //SYSUT2   DD DSN=&&REXXLIB(RXPGM),DISP=(NEW,PASS),
 //         DCB=(DSORG=PO,LRECL=80,RECFM=FB),
 //         SPACE=(TRK,(15,,1)),UNIT=3390

@@ -11,8 +11,7 @@ from stat import S_IEXEC, S_IREAD, S_IWRITE
 from jinja2 import Template
 
 def run_tso_command(ftp, commands, module):
-    jcl_template = """
-//COPYREXX EXEC PGM=IEBGENER
+    jcl_template = """//COPYREXX EXEC PGM=IEBGENER
 //SYSUT2   DD DSN=&&REXXLIB(RXPGM),DISP=(NEW,PASS),
 //         DCB=(DSORG=PO,LRECL=80,RECFM=FB),
 //         SPACE=(TRK,(15,,1)),UNIT=3390

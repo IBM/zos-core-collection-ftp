@@ -15,8 +15,7 @@ JOB_COMPLETION_MESSAGES = ["CC", "ABEND", "SEC"]
 
 def submit_pds_jcl(src, ftp, module):
     delete_on_close = True
-    wrapper_jcl_template = """
-//COPYREXX EXEC PGM=IEBGENER
+    wrapper_jcl_template = """//COPYREXX EXEC PGM=IEBGENER
 //SYSUT2   DD DSN=&&REXXLIB(RXPGM),DISP=(NEW,PASS),
 //         DCB=(DSORG=PO,LRECL=80,RECFM=FB),
 //         SPACE=(TRK,(15,,1)),UNIT=3390
