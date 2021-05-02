@@ -19,9 +19,9 @@ def job_card_contents():
 
 """
     job_card_contens = Template(job_card_template).render({
-        'userid': environ.get("FTP_USERID"),
-        'class': environ.get("FTP_JOB_CLASS"),
-        'msgclass': environ.get("FTP_JOB_MSGCLASS"),
+        'userid': environ.get("FTP_USERID").upper(),
+        'class': environ.get("FTP_JOB_CLASS").upper(),
+        'msgclass': environ.get("FTP_JOB_MSGCLASS").upper(),
     })
     return job_card_contens
 

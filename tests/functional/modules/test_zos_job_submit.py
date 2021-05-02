@@ -17,9 +17,9 @@ from jinja2 import Template
 JOB_CARD_TEMPLATE = """//{{ userid }}1  JOB CLASS={{ class }},MSGLEVEL=(1,1),MSGCLASS={{ msgclass }}
 """
 JOB_CARD_CONTENTS = Template(JOB_CARD_TEMPLATE).render({
-    'userid': environ.get("FTP_USERID"),
-    'class': environ.get("FTP_JOB_CLASS"),
-    'msgclass': environ.get("FTP_JOB_MSGCLASS"),
+    'userid': environ.get("FTP_USERID").upper(),
+    'class': environ.get("FTP_JOB_CLASS").upper(),
+    'msgclass': environ.get("FTP_JOB_MSGCLASS").upper(),
 })
 JCL_FILE_CONTENTS = """
 //UPTIME  EXEC PGM=BPXBATCH
