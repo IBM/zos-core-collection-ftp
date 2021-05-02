@@ -49,6 +49,7 @@ Next, set your FTP login information and job class parameters to the environment
 export FTP_USERID=ftp_userid
 export FTP_PASSWORD=ftp_password
 export FTP_HOST=ftp_hostname
+export FTP_PORT=ftp_port
 export FTP_JOB_CLASS=job_class
 export FTP_JOB_MSGCLASS=job_msgclass
 ```
