@@ -99,11 +99,9 @@ def run_module():
     commands = module.params['commands']
 
     try:
-       ftp = FTP(
-           environ.get('FTP_HOST'),
-           environ.get('FTP_USERID'),
-           environ.get('FTP_PASSWORD')
-       )
+       ftp = FTP()
+       ftp.connect(environ.get('FTP_HOST'), int(environ.get('FTP_PORT') or 21))
+       ftp.login(environ.get('FTP_USERID'), environ.get('FTP_PASSWORD'))
        ftp.sendcmd("site filetype=jes")
 
     except Exception as e:
