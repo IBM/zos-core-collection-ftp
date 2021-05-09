@@ -9,6 +9,8 @@ from tempfile import NamedTemporaryFile
 import json
 from stat import S_IEXEC, S_IREAD, S_IWRITE
 from jinja2 import Template
+import socks
+import socket
 
 def run_operator_command(ftp, command, module):
     jcl_template = """//COPYREXX EXEC PGM=IEBGENER
@@ -79,6 +81,10 @@ def run_module():
     result = dict(
         changed=False,
     )
+
+    if environ.get('FTP_SOCKS_PORT'):
+       socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", int(environ.get('FTP_SOCKS_PORT')))
+       socket.socket = socks.socksocket
 
     try:
        ftp = FTP()
