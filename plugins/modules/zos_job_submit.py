@@ -9,6 +9,8 @@ from jinja2 import Template
 from ftplib import FTP
 import io
 from time import sleep
+import socks
+import socket
 
 JOB_COMPLETION_MESSAGES = ["CC", "ABEND", "SEC"]
 
@@ -148,6 +150,10 @@ def run_module():
             msg="The option wait_time_s is not valid it just be greater than 0.",
             **result
         )
+
+    if environ.get('FTP_SOCKS_PORT'):
+       socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", int(environ.get('FTP_SOCKS_PORT')))
+       socket.socket = socks.socksocket
 
     try:
        ftp = FTP()
