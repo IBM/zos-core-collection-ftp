@@ -22,13 +22,11 @@ JOB_CARD_CONTENTS = Template(JOB_CARD_TEMPLATE).render({
     'msgclass': environ.get("FTP_JOB_MSGCLASS").upper(),
 })
 JCL_FILE_CONTENTS = """
-//UPTIME  EXEC PGM=BPXBATCH
-//STDPARM DD *
-SH uptime
+//UPTIME  EXEC PGM=BPXBATCH,
+//        PARM='SH uptime'
 //STDIN  DD DUMMY
 //STDOUT DD SYSOUT=*
 //STDERR DD SYSOUT=*
-//
 """
 TEMP_PATH = "/tmp/ansible/jcl"
 
