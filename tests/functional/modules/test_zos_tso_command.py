@@ -21,7 +21,7 @@ def test_zos_tso_command_listuser(ansible_adhoc):
     pprint(vars(hosts.all.options['inventory_manager']))
     pprint(hosts.all.options['inventory_manager']._inventory.hosts)
     hosts.all.options['inventory_manager']._inventory.hosts
-    results = hosts.localhost.zos_tso_command(commands=["LU DAIKI"])
+    results = hosts.localhost.zos_tso_command(commands=["LU"])
     print('--- results.contacted ---')
     pprint(results.contacted)
     for result in results.contacted.values():
