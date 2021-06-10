@@ -39,13 +39,18 @@ AA
 //SYSTSIN  DD DUMMY
 """
     wrapper_jcl = job_card_contents() + Template(wrapper_jcl_template).render({'src': src})
-    with io.BytesIO(bytes(wrapper_jcl, "utf-8")) as f: 
+    delete_on_close = True
+    wrapper_jcl_file = NamedTemporaryFile(delete=delete_on_close)
+    with open(wrapper_jcl_file.name, 'w') as f:
+        f.write(wrapper_jcl)
+    with open(wrapper_jcl_file.name, 'rb') as f:
         stdout = ftp.storlines("STOR JCL", f)
     wrapper_jcl_jobId = re.search(r'JOB\d{5}', stdout).group()
  
     # Get the jobid of the original job
     jobId = ""
     joblog = []
+    sleep(3)
     ftp.retrlines("RETR " + wrapper_jcl_jobId, joblog.append)
     for line in joblog:
         if re.search(r'JOBID = JOB\d{5}', line):
