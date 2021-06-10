@@ -1,6 +1,6 @@
 from ansible.module_utils.basic import AnsibleModule
 # from ansible_collections.ibm.ibm_zos_core_ftp.plugins.module_utils.job import job_output
-from ..module_utils.job import job_output, job_card_contents
+from ..module_utils.job import job_output, job_card_contents, wait_jobs_completion
 from tempfile import NamedTemporaryFile
 from os import environ
 import re
@@ -69,20 +69,6 @@ def submit_ftp_jcl(src, ftp, module):
         stdout = ftp.storlines("STOR " + src, f)
     jobId = re.search(r'JOB\d{5}', stdout).group()
     return jobId
-
-def wait_jobs_completion(ftp, module, jobId, wait_time_s):
-    duration = 0
-    jobs = []
-    ftp.dir(jobs.append)
-    while not re.search(jobId + '  OUTPUT', "\n".join(jobs)):
-        sleep(1)
-        duration = duration + 1
-        if duration == wait_time_s:
-            break
-        jobs = []
-        ftp.dir(jobs.append)
-
-    return duration
 
 def get_job_info(ftp, module, jobId, return_output):
     result = dict()
@@ -204,7 +190,7 @@ def run_module():
     duration = 0
     if wait is True:
         try:
-            duration = wait_jobs_completion(ftp, module, jobId, wait_time_s)
+            duration = wait_jobs_completion(ftp, jobId, wait_time_s)
         except SubmitJCLError as e:
             ftp.quit()
             module.fail_json(msg=repr(e), **result)

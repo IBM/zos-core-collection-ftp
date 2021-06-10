@@ -8,6 +8,7 @@ from stat import S_IEXEC, S_IREAD, S_IWRITE
 import re
 import io
 from jinja2 import Template
+from time import sleep
 
 def job_card_contents():
     """Generate a job card from the environment variables.
@@ -279,6 +280,8 @@ AA
             stdout = ftp.storlines("STOR JCL", f)
         get_job_detail_job_id = re.search(r'JOB\d{5}', stdout).group()
 
+        # wait for the job completion
+        wait_jobs_completion(ftp, get_job_detail_job_id, 10)
         lines = []
         ftp.retrlines("RETR " + get_job_detail_job_id + ".5", lines.append)
         lines[-1] = ""
@@ -292,6 +295,19 @@ AA
         raise
     return rc, out, err
 
+def wait_jobs_completion(ftp, jobId, wait_time_s):
+    duration = 0
+    jobs = []
+    ftp.dir(jobs.append)
+    while not re.search(jobId + '  OUTPUT', "\n".join(jobs)):
+        sleep(1)
+        duration = duration + 1
+        if duration == wait_time_s:
+            break
+        jobs = []
+        ftp.dir(jobs.append)
+
+    return duration
 
 def job_status(ftp, job_id=None, owner=None, job_name=None):
     """Get the status information of a z/OS job based on various search criteria.
