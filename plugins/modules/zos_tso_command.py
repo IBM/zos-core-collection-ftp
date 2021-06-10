@@ -2,7 +2,7 @@ import io
 import re
 from ftplib import FTP
 from ansible.module_utils.basic import AnsibleModule
-from ..module_utils.job import job_card_contents
+from ..module_utils.job import job_card_contents, wait_jobs_completion
 from os import chmod
 from os import environ
 from tempfile import NamedTemporaryFile
@@ -80,6 +80,9 @@ def run_commands(ftp, wrapper_jcl_template, commands, module):
 
     # Get the jobid
     wrapper_jcl_jobId = re.search(r'JOB\d{5}', stdout).group()
+
+    # Wait for the job completion
+    wait_jobs_completion(ftp, wrapper_jcl_jobId, 10)
 
     # Get the job log with the jobid
     joblog = []
