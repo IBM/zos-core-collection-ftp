@@ -277,7 +277,11 @@ AA
         if dd_name is None or dd_name == "?":
             dd_name = ""
         get_job_detail_jcl = job_card_contents() + Template(get_job_detail_jcl_template).render({'job_id': job_id, 'owner': owner, 'job_name': job_name, 'dd_name': dd_name})
-        with io.BytesIO(bytes(get_job_detail_jcl, "utf-8")) as f:
+        delete_on_close = True
+        get_job_detail_jcl_file = NamedTemporaryFile(delete=delete_on_close)
+        with open(get_job_detail_jcl_file.name, 'w')  as f:
+            f.write(get_job_detail_jcl)
+        with open(get_job_detail_jcl_file.name, 'rb') as f:
             stdout = ftp.storlines("STOR JCL", f)
         get_job_detail_job_id = re.search(r'JOB\d{5}', stdout).group()
 
