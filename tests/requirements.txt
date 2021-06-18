@@ -1,3 +1,5 @@
 ansible=2.9.9
 pytest=6.2.4
 pytest-ansible=2.2.4
+shellescape==3.8.1
+six==1.16.0
