@@ -9,6 +9,7 @@ import re
 import io
 from jinja2 import Template
 from time import sleep
+from six import PY2
 
 def job_card_contents():
     """Generate a job card from the environment variables.
@@ -484,12 +485,22 @@ def _ddname_pattern(contents, resolve_dependencies):
     Returns:
         str -- The arguments contents after any necessary operations.
     """
-    if not re.fullmatch(
-        r"^(?:[A-Z]{1}[A-Z0-9]{0,7})|(?:\?{1})$", str(contents), re.IGNORECASE,
-    ):
-        raise ValueError(
-            'Invalid argument type for "{0}". expected "ddname_pattern"'.format(
-                contents
+    if PY2:
+        if not re.match(
+            r"^(?:[A-Z]{1}[A-Z0-9]{0,7})|(?:\?{1})$", str(contents), re.IGNORECASE,
+        ):
+            raise ValueError(
+                'Invalid argument type for "{0}". expected "ddname_pattern"'.format(
+                    contents
+                )
             )
-        )
+    else:
+        if not re.fullmatch(
+            r"^(?:[A-Z]{1}[A-Z0-9]{0,7})|(?:\?{1})$", str(contents), re.IGNORECASE,
+        ):
+            raise ValueError(
+                'Invalid argument type for "{0}". expected "ddname_pattern"'.format(
+                    contents
+                )
+            )
     return str(contents)

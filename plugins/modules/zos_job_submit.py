@@ -11,6 +11,7 @@ import io
 from time import sleep
 import socks
 import socket
+from six import PY2
 
 JOB_COMPLETION_MESSAGES = ["CC", "ABEND", "SEC"]
 
@@ -161,7 +162,10 @@ def run_module():
     try:
         if location == "DATA_SET":
             data_set_name_pattern = re.compile(DSN_REGEX, re.IGNORECASE)
-            check = data_set_name_pattern.fullmatch(src)
+            if PY2:
+                check = data_set_name_pattern.match(src)
+            else:
+                check = data_set_name_pattern.fullmatch(src)
             if check:
                 if volume is None or volume == "":
                     jobId = submit_pds_jcl(src, ftp, module)
