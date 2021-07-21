@@ -98,6 +98,7 @@ def run_module():
        ftp.connect(environ.get('FTP_HOST'), int(environ.get('FTP_PORT') or 21))
        ftp.login(environ.get('FTP_USERID'), environ.get('FTP_PASSWORD'))
        ftp.sendcmd("site filetype=jes")
+       ftp.set_pasv(True)
 
     except Exception as e:
        module.fail_json(
