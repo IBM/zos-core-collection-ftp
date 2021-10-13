@@ -51,3 +51,8 @@ repository: https://github.com/IBM/zos-core-collection-ftp
 
 # The URL to the collection issue tracker
 #issues: http://example.com/issue/tracker
+build_ignore:
+  - tests
+  - .gitignore
+  - '*.tar.gz'
+  - '*.sh' 
