@@ -55,6 +55,7 @@ export FTP_JOB_MSGCLASS=job_msgclass
 ```
 
 
+
 Finally, give access to the JESSPOOL resources to the userid.
 
 * If SAF is disabled, define the userid as a member of ISFSPROG group in ISFPRMxx.
@@ -123,6 +124,39 @@ Then, execute the playbook.
 ```bash
 ansible-playbook site.yml
 ```
+
+
+How to connect z/OS via a SSH tunnel SOCKS5 proxy
+================================================
+
+This collection support SSH tunnel SOCKS5 proxy(hereafter referred to as jumphost). If you would like to connect z/OS via a jumphost like jumphosts, you should do the following additional steps.
+
+
+First, install PySocks in your controller node.
+
+
+```bash
+pip3 install PySocks
+```
+
+
+Second, set the port number for SSH tunnel to FTP_SOCKS_PORT environment variable.
+
+
+```bash
+export FTP_SOCKS_PORT=10022
+```
+
+
+Finally, add a task to establish an SSH tunnel in the beginning of the tasks in the playbook. According to your environemt, set the username and IP address of the jumphost to jumphost_ssh_user and jumphost_ip_address. And set the ssh private key required to connect the jumphost to JUMPHOST_SSH_PRIVATE_KEY. The port number (10022) specified here must match that of FTP_SOCKS_PORT above.
+
+
+```bash
+  tasks:
+    - shell: |
+        bash -c '/usr/bin/ssh -CfNq -D 127.0.0.1:10022 {{ jumphost_ssh_user }}@{{ jumphost_ip_address }} -i $JUMPHOST_SSH_PRIVATE_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ;sleep 30'
+```
+
 
 
 Author

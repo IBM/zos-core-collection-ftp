@@ -124,6 +124,40 @@ ansible-playbook site.yml
 ```
 
 
+SSH tunnel SOCKS5 proxyを越えてz/OSにアクセスする方法
+====================================================
+
+このコレクションは、SSHトンネルを使ったSOCKS5ベースのProxy(以下、Jumphost)をサポートしています。もし、Jumphostを越えてz/OSにアクセスしたい場合は、追加で以下のステップを行ってください。
+
+
+まず、コントローラノードにPySocksを導入してください。
+
+
+```bash
+pip3 install PySocks
+```
+
+
+次に、コントローラノードからJumphostにSSHトンネルで接続する際に利用するローカルのポート番号を環境変数FTP_SOCKS_PORTに設定してください。
+
+
+```bash
+export FTP_SOCKS_PORT=10022
+```
+
+
+最後に、SSHトンネルを作成するtaskをplaybook内のtasksの最初に追加してください。お使いの環境に合わせて、JumphostのSSHユーザー名とIPアドレスをそれぞれsock5_proxy_ssh_userとsocks5_proxy_ip_address変数に設定してください。さらに、Jumphostにアクセスするのに必要なSSH秘密鍵をJUMPHOST_SSH_PRIVATE_KEYに設定してください。ここで指定するポート番号(10022)は、上記のFTP_SOCKS_PORTと合わせておく必要があります。
+
+
+```bash
+  tasks:
+    - shell: |
+        bash -c '/usr/bin/ssh -CfNq -D 127.0.0.1:10022 {{ jumphost_ssh_user }}@{{ jumphost_ip_address }} -i $JUMPHOST_SSH_PRIVATE_KEY -o
+ StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ;sleep 30'
+```
+
+
+
 開発者
 ======
 
