@@ -23,7 +23,7 @@ authors:
 ### OPTIONAL but strongly recommended
 
 # A short summary description of the collection
-description: your collection description
+description: This is a collection that provides some of the functionality of the IBM z/OS core collection via FTP.
 
 # Either a single license or a list of licenses for content inside of a collection. Ansible Galaxy currently only
 # accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive with 'license_file'
@@ -41,13 +41,13 @@ tags: []
 dependencies: {}
 
 # The URL of the originating SCM repository
-repository: http://example.com/repository
+repository: https://github.com/IBM/zos-core-collection-ftp
 
 # The URL to any online docs
-documentation: http://docs.example.com
+#documentation: http://docs.example.com
 
 # The URL to the homepage of the collection/project
-homepage: http://example.com
+#homepage: http://example.com
 
 # The URL to the collection issue tracker
-issues: http://example.com/issue/tracker
+#issues: http://example.com/issue/tracker
