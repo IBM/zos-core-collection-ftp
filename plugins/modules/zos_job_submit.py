@@ -9,8 +9,6 @@ from jinja2 import Template
 from ftplib import FTP
 import io
 from time import sleep
-import socks
-import socket
 from six import PY2
 
 JOB_COMPLETION_MESSAGES = ["CC", "ABEND", "SEC"]
@@ -144,6 +142,8 @@ def run_module():
         )
 
     if environ.get('FTP_SOCKS_PORT'):
+       import socks
+       import socket
        socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", int(environ.get('FTP_SOCKS_PORT')))
        socket.socket = socks.socksocket
 
