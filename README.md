@@ -38,7 +38,7 @@ Install the IBM z/OS core FTP collection in your environment.
 git clone https://github.com/IBM/zos-core-collection-ftp.git
 cd zos-core-collection-ftp
 ansible-galaxy collection build
-ansible-galaxy collection install ibm-ibm_zos_core_ftp-1.0.0.tar.gz
+ansible-galaxy collection install daiki_shimizu-ibm_zos_core_ftp-1.0.0.tar.gz
 ```
 
 
@@ -93,7 +93,7 @@ site.yml
 ---
 - hosts: localhost
   collections: 
-    - ibm.ibm_zos_core_ftp
+    - daiki_shimizu.ibm_zos_core_ftp
 
   tasks:
     - name: Submit a JCL on z/OS Dataset
