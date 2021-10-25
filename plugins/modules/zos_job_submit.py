@@ -221,7 +221,6 @@ def run_module():
         }
     else:
         result["message"] = {"stdout": "Submit JCL operation succeeded."}
-    result["rc"] = 0
     result["changed"] = True
     module.exit_json(**result)
 
