@@ -47,7 +47,7 @@ def test_zos_job_submit_positive_path(ansible_adhoc):
     print('--- results.contacted ---')
     pprint(results.contacted)
     for result in results.contacted.values():
-        assert result["rc"] == 0
+        assert result["jobs"][0]["ret_code"]["code"] == 0
         assert result.get("changed") is True
     #    assert result.get("content") is not None
 
@@ -64,6 +64,6 @@ def test_zos_job_submit_uss(ansible_adhoc):
     print('--- results.contacted ---')
     pprint(results.contacted)
     for result in results.contacted.values():
-        assert result["rc"] == 0
+        assert result["jobs"][0]["ret_code"]["code"] == 0
         assert result.get("changed") is True
     #    assert result.get("content") is not None
