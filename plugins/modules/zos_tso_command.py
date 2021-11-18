@@ -112,7 +112,15 @@ def run_module():
        socket.socket = socks.socksocket
 
     try:
-       ftp = FTP()
+       if environ.get('FTP_TLS_VERSION'):
+           from ftplib import FTP_TLS
+           import ssl
+           ftp = FTP_TLS()
+           tls_version = environ.get('FTP_TLS_VERSION')
+           if tls_version == '1.2':
+               ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
+       else:
+           ftp = FTP()
        ftp.connect(environ.get('FTP_HOST'), int(environ.get('FTP_PORT') or 21))
        ftp.login(environ.get('FTP_USERID'), environ.get('FTP_PASSWORD'))
        ftp.sendcmd("site filetype=jes")
