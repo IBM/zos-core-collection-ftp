@@ -3,8 +3,7 @@ import re
 from ftplib import FTP
 from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.job import job_card_contents, wait_jobs_completion
-from os import chmod
-from os import environ
+from os import chmod, environ, path
 from tempfile import NamedTemporaryFile
 import json
 from stat import S_IEXEC, S_IREAD, S_IWRITE
@@ -97,7 +96,18 @@ def run_module():
        if environ.get('FTP_TLS_VERSION'):
            from ftplib import FTP_TLS
            import ssl
-           ftp = FTP_TLS()
+           cert_file_path = environ.get('FTP_TLS_CERT_FILE')
+           if cert_file_path: 
+               if not path.isfile(cert_file_path):
+                   module.fail_json(
+                       msg="Certification file not found: {0}".format(repr(cert_file_path)), **result
+                   )
+               context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+               context.load_verify_locations(cert_file_path)
+               context.check_hostname = False
+               ftp = FTP_TLS(context=context)
+           else:
+               ftp = FTP_TLS()
            tls_version = environ.get('FTP_TLS_VERSION')
            if tls_version == '1.2':
                ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
