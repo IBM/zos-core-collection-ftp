@@ -5,6 +5,7 @@ __metaclass__ = type
 from tempfile import NamedTemporaryFile
 from os import chmod, path, remove, environ
 from stat import S_IEXEC, S_IREAD, S_IWRITE
+from timeit import default_timer as timer
 import re
 import io
 from jinja2 import Template
@@ -306,13 +307,15 @@ AA
     return rc, out, err
 
 def wait_jobs_completion(ftp, jobId, wait_time_s):
+    starttime = timer()
     duration = 0
     jobs = []
     ftp.dir(jobs.append)
     while not re.search(jobId + '  OUTPUT', "\n".join(jobs)):
-        sleep(1)
-        duration = duration + 1
-        if duration == wait_time_s:
+        sleep(0.5)
+        checktime = timer()
+        duration = round(checktime - starttime)
+        if duration >= wait_time_s:
             break
         jobs = []
         ftp.dir(jobs.append)

@@ -214,13 +214,24 @@ def run_module():
         )
 
     result["job_id"] = jobId
-    duration = 0
-    if wait is True:
-        try:
-            duration = wait_jobs_completion(ftp, jobId, wait_time_s)
-        except SubmitJCLError as e:
-            ftp.quit()
-            module.fail_json(msg=repr(e), **result)
+    if not wait:
+        wait_time_s = 10
+
+    try:
+        duration = wait_jobs_completion(ftp, jobId, wait_time_s)
+    except SubmitJCLError as e:
+        ftp.quit()
+        module.fail_json(msg=repr(e), **result)
+
+    if duration >= wait_time_s:
+        result["message"] = {
+            "stdout": "Submit JCL operation succeeded but it is a long running job. Timeout is "
+            + str(wait_time_s)
+            + " seconds.  JobID is "
+            + str(jobId)
+            + "."
+        }
+
     try:
         result = get_job_info(ftp, module, jobId, return_output)
         ftp.quit()
@@ -234,15 +245,9 @@ def run_module():
     except Exception as e:
         ftp.quit()
         module.fail_json(msg=repr(e), **result)
+
     result["duration"] = duration
-    if duration == wait_time_s:
-        result["message"] = {
-            "stdout": "Submit JCL operation succeeded but it is a long running job. Timeout is "
-            + str(wait_time_s)
-            + " seconds."
-        }
-    else:
-        result["message"] = {"stdout": "Submit JCL operation succeeded."}
+    result["message"] = {"stdout": "Submit JCL operation succeeded."}
     result["changed"] = True
     module.exit_json(**result)
 
