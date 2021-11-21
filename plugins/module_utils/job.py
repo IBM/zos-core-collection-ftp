@@ -66,9 +66,52 @@ def _get_job_output(ftp, job_id="*", owner="*", job_name="*", dd_name=""):
                 str(rc), str(err)
             )
         )
-    if not out:
-        raise RuntimeError("Failed to retrieve job output. No job output found.")
-    jobs = _parse_jobs(out)
+    jobs = []
+    if out:
+        jobs = _parse_jobs(out)
+    if not jobs:
+        jobs = _job_not_found(job_id, owner, job_name, dd_name)
+
+    return jobs
+
+
+def _job_not_found(job_id, owner, job_name, dd_name, ovrr=None):
+    jobs = []
+
+    job = {}
+
+    job["job_id"] = job_id
+    job["job_name"] = job_name
+    job["subsystem"] = None
+    job["system"] = None
+    job["owner"] = None
+
+    job["ret_code"] = {}
+    job["ret_code"]["msg"] = "JOB NOT FOUND"
+    job["ret_code"]["code"] = None
+    job["ret_code"]["msg_code"] = "NOT FOUND"
+    job["ret_code"]["msg_txt"] = "The job could not be found"
+
+    job["class"] = ""
+    job["content_type"] = ""
+
+    job["ddnames"] = []
+    dd = {}
+    dd["ddname"] = dd_name
+    dd["record_count"] = "0"
+    dd["id"] = ""
+    dd["stepname"] = None
+    dd["procstep"] = ""
+    dd["byte_count"] = "0"
+    job["ddnames"].append(dd)
+
+    if ovrr is not None:
+        job["ret_code"]["msg"] = "NO JOBS FOUND"
+        job["ret_code"]["msg_code"] = "NOT FOUND"
+        job["ret_code"]["msg_txt"] = "No jobs returned from query"
+
+    jobs.append(job)
+
     return jobs
 
 
@@ -128,6 +171,8 @@ def _parse_jobs(output_str):
 
                 job["ddnames"] = _parse_dds(job_str)
                 jobs.append(job)
+    else:
+        jobs = _job_not_found("", "", "", "notused")
 
     return jobs
 
@@ -355,9 +400,11 @@ def _get_job_status(ftp, job_id="*", owner="*", job_name="*"):
                 str(rc), str(err)
             )
         )
+    if out:
+        jobs = _parse_jobs(out)
     if not out:
-        raise RuntimeError("Failed to retrieve job status. No job status found.")
-    jobs = _parse_jobs(out)
+        jobs = _job_not_found(job_id, owner, job_name, "notused")
+
     for job in jobs:
         job.pop("ddnames", None)
     return jobs

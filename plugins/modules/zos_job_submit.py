@@ -12,7 +12,7 @@ import io
 from time import sleep
 from six import PY2
 
-JOB_COMPLETION_MESSAGES = ["CC", "ABEND", "SEC"]
+JOB_COMPLETION_MESSAGES = ["CC", "ABEND", "SEC ERROR", "JCL ERROR"]
 
 
 def submit_pds_jcl(src, ftp, module):
@@ -77,41 +77,6 @@ def submit_ftp_jcl(src, ftp, module):
         stdout = ftp.storlines("STOR " + src, f)
     jobId = re.search(r'JOB\d{5}', stdout).group()
     return jobId
-
-def get_job_info(ftp, module, jobId, return_output):
-    result = dict()
-    try:
-        result["jobs"] = query_jobs_status(ftp, module, jobId)
-    except SubmitJCLError:
-        raise
-
-    if not return_output:
-        for job in result.get("jobs", []):
-            job["ddnames"] = []
-
-    result["changed"] = True
-
-    return result
-
-def query_jobs_status(ftp, module, jobId):
-    timeout = 20
-    output = job_output(ftp, job_id=jobId)
-    while not output and timeout > 0:
-        try:
-            sleep(0.5)
-            output = job_output(ftp, job_id=jobId)
-            timeout = timeout - 1
-        except IndexError:
-            pass
-        except Exception as e:
-            raise SubmitJCLError(
-                "{0} {1} {2}".format(repr(e), "The output is: ", output or " ")
-            )
-    if not output and timeout == 0:
-        raise SubmitJCLError(
-            "The job can not be queried from JES (Timeout=10s). Please check the zOS system.  It is slow to respond."
-        )
-    return output
 
 
 def assert_valid_return_code(max_rc, found_rc):
@@ -232,6 +197,7 @@ def run_module():
     # real time loop - will be used regardless of 'wait' to capture data
     starttime = timer()
     loopdone = False
+    foundissue = None
     while not loopdone:
         try:
             job_output_txt = job_output(ftp, job_id=jobId)
@@ -251,6 +217,9 @@ def run_module():
                     "^(?:{0})".format("|".join(JOB_COMPLETION_MESSAGES)), job_msg
                 ):
                     loopdone = True
+                    # if the message doesn't have a CC, it is an improper completion (error/abend)
+                    if re.search("^(?:CC)", job_msg) is None:
+                        foundissue = job_msg
 
         if not loopdone:
             checktime = timer()
@@ -279,6 +248,8 @@ def run_module():
     checktime = timer()
     duration = checktime - starttime
     result["duration"] = duration
+    result["changed"] = True
+
     if duration >= wait_time_s:
         result["message"] = {
             "stdout": "Submit JCL operation succeeded but it is a long running job. Timeout is "
@@ -288,8 +259,20 @@ def run_module():
             + "."
         }
     else:
-        result["message"] = {"stdout": "Submit JCL operation succeeded."}
-    result["changed"] = True
+        if foundissue is not None:
+            result["changed"] = False
+            result["message"] = {
+                "stderr": "Submit succeeded, but job failed: " + foundissue
+            }
+            result["failed"] = True
+            module.fail_json(msg=result["message"], **result)
+        else:
+            result["message"] = {
+                "stdout": "Submit JCL operation succeeded with id of "
+                + str(jobId)
+                + "."
+            }
+
     module.exit_json(**result)
 
 
