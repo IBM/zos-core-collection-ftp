@@ -209,7 +209,7 @@ def run_module():
         result["job_id"] = jobId
         ftp.quit()
         module.fail_json(
-            msg="JOB ID RETURNED IS None. PLEASE CHECK WHETHER THE JCL IS CORRECT.",
+            msg="JOB ID Returned is None. Please check whether the JCL is valid.",
             **result
         )
 
