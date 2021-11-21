@@ -162,6 +162,9 @@ def run_module():
        ftp.sendcmd("site filetype=jes")
        ftp.set_pasv(True)
 
+       if environ.get('FTP_TLS_VERSION'):
+           ftp.prot_p()
+
     except Exception as e:
        module.fail_json(
            msg="An unexpected error occurred during FTP login: {0}".format(repr(e)), **result
