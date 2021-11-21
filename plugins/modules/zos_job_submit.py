@@ -95,11 +95,11 @@ def get_job_info(ftp, module, jobId, return_output):
 
 def query_jobs_status(ftp, module, jobId):
     timeout = 20
-    output = []
+    output = job_output(ftp, job_id=jobId)
     while not output and timeout > 0:
         try:
-            output = job_output(ftp, job_id=jobId)
             sleep(0.5)
+            output = job_output(ftp, job_id=jobId)
             timeout = timeout - 1
         except IndexError:
             pass
