@@ -3,6 +3,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.job import job_output, job_card_contents, wait_jobs_completion
 from tempfile import NamedTemporaryFile
 from os import environ, path
+from timeit import default_timer as timer
 import re
 from stat import S_IEXEC, S_IREAD, S_IWRITE
 from jinja2 import Template
@@ -46,15 +47,23 @@ AA
         stdout = ftp.storlines("STOR JCL", f)
     wrapper_jcl_jobId = re.search(r'JOB\d{5}', stdout).group()
  
+    # Wait for the complation of the original job
+    wrapper_jcl_wait_time_s = 10
+    duration = wait_jobs_completion(ftp, wrapper_jcl_jobId, wrapper_jcl_wait_time_s)
+    if duration > wrapper_jcl_wait_time_s:
+       raise SubmitJCLError(
+            "The job can not be queried from JES (Timeout=10s). Please check the zOS system.  It is slow to respond."
+        )
+
     # Get the jobid of the original job
     jobId = ""
     joblog = []
-    sleep(3)
     ftp.retrlines("RETR " + wrapper_jcl_jobId, joblog.append)
     for line in joblog:
         if re.search(r'JOBID = JOB\d{5}', line):
             jobId = re.search(r'JOB\d{5}', line).group()
             break
+
     if jobId == "":
         raise SubmitJCLError("SUBMIT JOB FAILED:  jobId :" + wrapper_jcl_jobId)
     return jobId
