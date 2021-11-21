@@ -114,6 +114,9 @@ def query_jobs_status(ftp, module, jobId):
     return output
 
 
+def assert_valid_return_code(max_rc, found_rc):
+    if found_rc is None or max_rc < int(found_rc):
+        raise SubmitJCLError("")
 
 
 def run_module():
