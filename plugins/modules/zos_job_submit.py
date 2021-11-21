@@ -137,7 +137,7 @@ def run_module():
 
     if wait_time_s <= 0:
         module.fail_json(
-            msg="The option wait_time_s is not valid it just be greater than 0.",
+            msg="The option wait_time_s is not valid.  It must be greater than 0.",
             **result
         )
 
