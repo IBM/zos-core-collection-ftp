@@ -82,5 +82,5 @@ def test_zos_job_submit_uss_S013(ansible_adhoc):
     for result in results.contacted.values():
         assert result["jobs"][0]["ret_code"]["msg"] == "ABEND S013"
         assert result["jobs"][0]["ret_code"]["msg_code"] == "S013"
-        assert result["jobs"][0]["ret_code"]["msg.txt"] == ""
+        assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
         assert result.get("changed") is True
