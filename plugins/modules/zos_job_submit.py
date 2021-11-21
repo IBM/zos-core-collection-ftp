@@ -155,7 +155,7 @@ def run_module():
            if cert_file_path:
                if not path.isfile(cert_file_path):
                    module.fail_json(
-                       msg="Certification file not found: {0}".format(repr(cert_file_path)), **result
+                       msg="The TLS cartificate file not found: {0}".format(repr(cert_file_path)), **result
                    )
                context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
                context.load_verify_locations(cert_file_path)
