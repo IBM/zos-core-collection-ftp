@@ -47,10 +47,10 @@ AA
         stdout = ftp.storlines("STOR JCL", f)
     wrapper_jcl_jobId = re.search(r'JOB\d{5}', stdout).group()
  
-    # Wait for the complation of the original job
-    original_job_wait_time_s = 20
-    duration = wait_jobs_completion(ftp, wrapper_jcl_jobId, original_job_wait_time_s)
-    if duration > original_job_wait_time_s:
+    # Wait for the complation of the wrapper jcl 
+    wrapper_jcl_wait_time_s = 20
+    duration = wait_jobs_completion(ftp, wrapper_jcl_jobId, wrapper_jcl_wait_time_s)
+    if duration > wrapper_jcl_wait_time_s:
        raise SubmitJCLError(
             "The job can not be queried from JES (Timeout=10s). Please check the zOS system.  It is slow to respond."
         )
