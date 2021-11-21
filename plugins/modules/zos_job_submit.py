@@ -229,26 +229,55 @@ def run_module():
     if not wait:
         wait_time_s = 10
 
-    try:
-        duration = wait_jobs_completion(ftp, jobId, wait_time_s)
-    except SubmitJCLError as e:
-        ftp.quit()
-        module.fail_json(msg=repr(e), **result)
+    # real time loop - will be used regardless of 'wait' to capture data
+    starttime = timer()
+    loopdone = False
+    while not loopdone:
+        try:
+            job_output_txt = job_output(ftp, job_id=jobId)
+        except IndexError:
+            pass
+        except Exception as e:
+            result["err_detail"] = "{1} {2}.\n".format(
+                "Error during job submission.  The output is:", job_output_txt or " "
+            )
+            module.fail_json(msg=repr(e), **result)
 
-    try:
-        result = get_job_info(ftp, module, jobId, return_output)
-        ftp.quit()
+        if bool(job_output_txt):
+            jot_retcode = job_output_txt[0].get("ret_code")
+            if bool(jot_retcode):
+                job_msg = jot_retcode.get("msg")
+                if re.search(
+                    "^(?:{0})".format("|".join(JOB_COMPLETION_MESSAGES)), job_msg
+                ):
+                    loopdone = True
+
+        if not loopdone:
+            checktime = timer()
+            duration = round(checktime - starttime)
+            if duration >= wait_time_s:
+                loopdone = True
+                result["message"] = {
+                    "stdout": "Submit JCL operation succeeded but it is a long running job, exceeding the timeout of "
+                    + str(wait_time_s)
+                    + " seconds.  JobID is "
+                    + str(jobId)
+                    + "."
+                }
+            else:
+                sleep(1)
+
+    # End real time loop ^^^
+
+    if bool(job_output_txt):
+        result["jobs"] = job_output_txt
         if wait is True and return_output is True and max_rc is not None:
             assert_valid_return_code(
                 max_rc, result.get("jobs")[0].get("ret_code").get("code")
             )
-    except SubmitJCLError as e:
-        ftp.quit()
-        module.fail_json(msg=repr(e), **result)
-    except Exception as e:
-        ftp.quit()
-        module.fail_json(msg=repr(e), **result)
 
+    checktime = timer()
+    duration = checktime - starttime
     result["duration"] = duration
     if duration >= wait_time_s:
         result["message"] = {
