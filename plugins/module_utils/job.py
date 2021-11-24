@@ -28,7 +28,7 @@ def job_card_contents():
     })
     return job_card_contens
 
-def job_output(ftp, job_id=None, owner=None, job_name=None, dd_name=None):
+def job_output(ftp, wait_time_s, job_id=None, owner=None, job_name=None, dd_name=None):
     """Get the output from a z/OS job based on various search criteria.
     Keyword Arguments:
         ftp {ftplib} -- The instance of FTP class
@@ -48,18 +48,18 @@ def job_output(ftp, job_id=None, owner=None, job_name=None, dd_name=None):
     owner = "*"
     dd_name = ""
 
-    job_detail = _get_job_output(ftp, job_id, owner, job_name, dd_name)
+    job_detail = _get_job_output(ftp, wait_time_s, job_id, owner, job_name, dd_name)
 
     if len(job_detail) == 0:
         job_id = "" if job_id == "*" else job_id
         owner = "" if owner == "*" else owner
         job_name = "" if job_name == "*" else job_name
-        job_detail = _get_job_output(ftp, job_id, owner, job_name, dd_name)
+        job_detail = _get_job_output(ftp, wait_time_s, job_id, owner, job_name, dd_name)
     return job_detail
 
 
-def _get_job_output(ftp, job_id="*", owner="*", job_name="*", dd_name=""):
-    rc, out, err = _get_job_output_str(ftp, job_id, owner, job_name, dd_name)
+def _get_job_output(ftp, wait_time_s, job_id="*", owner="*", job_name="*", dd_name=""):
+    rc, out, err = _get_job_output_str(ftp, wait_time_s, job_id, owner, job_name, dd_name)
     if rc != 0:
         raise RuntimeError(
             "Failed to retrieve job output. RC: {0} Error: {1}".format(
@@ -219,7 +219,7 @@ def _parse_dds(job_str):
     return dds
 
 
-def _get_job_output_str(ftp, job_id="*", owner="*", job_name="*", dd_name=""):
+def _get_job_output_str(ftp, wait_time_s, job_id="*", owner="*", job_name="*", dd_name=""):
     """Generate JSON output string containing Job info from SDSF.
     Writes a temporary REXX script to the USS filesystem to gather output.
 
@@ -337,7 +337,9 @@ AA
         get_job_detail_job_id = re.search(r'JOB\d{5}', stdout).group()
 
         # wait for the job completion
-        wait_jobs_completion(ftp, get_job_detail_job_id, 10)
+        duration = wait_jobs_completion(ftp, get_job_detail_job_id, wait_time_s)
+        if duration >= wait_time_s:
+           return 0, None, ""
         lines = []
         ftp.retrlines("RETR " + get_job_detail_job_id + ".5", lines.append)
         lines[-1] = ""

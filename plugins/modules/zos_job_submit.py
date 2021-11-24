@@ -200,7 +200,7 @@ def run_module():
     foundissue = None
     while not loopdone:
         try:
-            job_output_txt = job_output(ftp, job_id=jobId)
+            job_output_txt = job_output(ftp, wait_time_s, job_id=jobId)
         except IndexError:
             pass
         except Exception as e:
