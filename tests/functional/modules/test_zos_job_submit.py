@@ -48,8 +48,10 @@ def test_submit_ftp_jcl(ansible_adhoc):
     pprint(results.contacted)
     for result in results.contacted.values():
         assert result["jobs"][0]["ret_code"]["code"] == 0
+        assert result["jobs"][0]["ret_code"]["msg"] == "CC 0000"
+        assert result["jobs"][0]["ret_code"]["msg_code"] == "0000"
+        assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
         assert result.get("changed") is True
-    #    assert result.get("content") is not None
 
 
 def test_submit_pds_jcl(ansible_adhoc):
@@ -65,8 +67,10 @@ def test_submit_pds_jcl(ansible_adhoc):
     pprint(results.contacted)
     for result in results.contacted.values():
         assert result["jobs"][0]["ret_code"]["code"] == 0
+        assert result["jobs"][0]["ret_code"]["msg"] == "CC 0000"
+        assert result["jobs"][0]["ret_code"]["msg_code"] == "0000"
+        assert result["jobs"][0]["ret_code"]["msg_code"] == ""
         assert result.get("changed") is True
-    #    assert result.get("content") is not None
 
 # The negative path test
 def test_submit_pds_jcl_RC12(ansible_adhoc):
@@ -84,6 +88,7 @@ def test_submit_pds_jcl_RC12(ansible_adhoc):
         assert result["jobs"][0]["ret_code"]["code"] == 12
         assert result["jobs"][0]["ret_code"]["msg"] == "CC 0012"
         assert result["jobs"][0]["ret_code"]["msg_code"] == "0012"
+        assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
         assert result.get("changed") is True
 
 def test_submit_pds_jcl_JCLERROR(ansible_adhoc):
@@ -116,6 +121,7 @@ def test_submit_pds_jcl_Abend_S013(ansible_adhoc):
     print('--- results.contacted ---')
     pprint(results.contacted)
     for result in results.contacted.values():
+        assert result["jobs"][0]["ret_code"]["code"] == None
         assert result["jobs"][0]["ret_code"]["msg"] == "ABEND S013"
         assert result["jobs"][0]["ret_code"]["msg_code"] == "S013"
         assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
@@ -133,6 +139,7 @@ def test_submit_pds_jcl_long_job(ansible_adhoc):
     print('--- results.contacted ---')
     pprint(results.contacted)
     for result in results.contacted.values():
+        assert result["jobs"][0]["ret_code"]["code"] == None
         assert result["jobs"][0]["ret_code"]["msg"] == "JOB NOT FOUND"
         assert result["jobs"][0]["ret_code"]["msg_code"] == "NOT FOUND"
         assert result["jobs"][0]["ret_code"]["msg_txt"] == "The job could not be found"
