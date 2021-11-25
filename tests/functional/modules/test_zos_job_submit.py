@@ -15,132 +15,186 @@ from pprint import pprint
 from jinja2 import Template
 
 JOB_CARD_TEMPLATE = """//{{ userid }}1  JOB CLASS={{ class }},MSGLEVEL=(1,1),MSGCLASS={{ msgclass }}
+
 """
 JOB_CARD_CONTENTS = Template(JOB_CARD_TEMPLATE).render({
     'userid': environ.get("FTP_USERID").upper(),
     'class': environ.get("FTP_JOB_CLASS").upper(),
     'msgclass': environ.get("FTP_JOB_MSGCLASS").upper(),
 })
-JCL_FILE_CONTENTS = """
-//UPTIME  EXEC PGM=BPXBATCH,
-//        PARM='SH uptime'
-//STDIN  DD DUMMY
-//STDOUT DD SYSOUT=*
-//STDERR DD SYSOUT=*
-"""
 TEMP_PATH = "/tmp/ansible/jcl"
 
-# The positive path test
-def test_submit_ftp_jcl(ansible_adhoc):
-    hosts = ansible_adhoc(inventory='localhost', connection='local')
-    hosts.localhost.file(path=TEMP_PATH, state="directory")
-    hosts.localhost.shell(
-            cmd="echo {0} > {1}/SAMPLE".format(quote(JOB_CARD_CONTENTS + JCL_FILE_CONTENTS), TEMP_PATH)
+def store_jcl(localhost, jcl_filename):
+    with open("tests/functional/files/{0}".format(jcl_filename)) as f:
+       jcl_file_content = f.read()
+
+    localhost.file(path=TEMP_PATH, state="directory")
+    localhost.shell(
+            cmd="echo {0} > {1}/SAMPLE".format(quote(JOB_CARD_CONTENTS + jcl_file_content), TEMP_PATH)
     )
-    print('--- hosts.all ---')
-    pprint(hosts.all)
-    pprint(hosts.all.options)
-    pprint(vars(hosts.all.options['inventory_manager']))
-    pprint(hosts.all.options['inventory_manager']._inventory.hosts)
-    hosts.all.options['inventory_manager']._inventory.hosts
-    results = hosts.localhost.zos_job_submit(src="{0}/SAMPLE".format(TEMP_PATH), location="LOCAL", wait=True, wait_time_s=10)
-    print('--- results.contacted ---')
-    pprint(results.contacted)
-    for result in results.contacted.values():
-        assert result["jobs"][0]["ret_code"]["code"] == 0
-        assert result["jobs"][0]["ret_code"]["msg"] == "CC 0000"
-        assert result["jobs"][0]["ret_code"]["msg_code"] == "0000"
-        assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
-        assert result.get("changed") is True
 
+# The positive path test
+def test_submit_ftp_jcl(localhost, ansible_adhoc):
+    store_jcl(localhost, "sample.jcl")
+    result = localhost.zos_job_submit(src="{0}/SAMPLE".format(TEMP_PATH), location="LOCAL", wait=True).localhost
 
-def test_submit_pds_jcl(ansible_adhoc):
-    hosts = ansible_adhoc(inventory='localhost', connection='local')
-    print('--- hosts.all ---')
-    pprint(hosts.all)
-    pprint(hosts.all.options)
-    pprint(vars(hosts.all.options['inventory_manager']))
-    pprint(hosts.all.options['inventory_manager']._inventory.hosts)
-    hosts.all.options['inventory_manager']._inventory.hosts
-    results = hosts.localhost.zos_job_submit(src="DAIKI.ANSIBLE.PDS(SAMPLE)", location="DATA_SET")
-    print('--- results.contacted ---')
-    pprint(results.contacted)
-    for result in results.contacted.values():
-        assert result["jobs"][0]["ret_code"]["code"] == 0
-        assert result["jobs"][0]["ret_code"]["msg"] == "CC 0000"
-        assert result["jobs"][0]["ret_code"]["msg_code"] == "0000"
-        assert result["jobs"][0]["ret_code"]["msg_code"] == ""
-        assert result.get("changed") is True
+    print('--- result ---')
+    pprint(result)
+
+    assert result["jobs"][0]["ret_code"]["code"] == 0
+    assert result["jobs"][0]["ret_code"]["msg"] == "CC 0000"
+    assert result["jobs"][0]["ret_code"]["msg_code"] == "0000"
+    assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
+    assert result.is_changed
+    assert result.is_successful
+
+def test_submit_pds_jcl(localhost, ansible_adhoc):
+    result = localhost.zos_job_submit(src="DAIKI.ANSIBLE.PDS(SAMPLE)", location="DATA_SET", wait=True).localhost
+
+    print('--- result ---')
+    pprint(result)
+
+    assert result["jobs"][0]["ret_code"]["code"] == 0
+    assert result["jobs"][0]["ret_code"]["msg"] == "CC 0000"
+    assert result["jobs"][0]["ret_code"]["msg_code"] == "0000"
+    assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
+    assert result.is_changed
+    assert result.is_successful
 
 # The negative path test
-def test_submit_pds_jcl_RC12(ansible_adhoc):
-    hosts = ansible_adhoc(inventory='localhost', connection='local')
-    print('--- hosts.all ---')
-    pprint(hosts.all)
-    pprint(hosts.all.options)
-    pprint(vars(hosts.all.options['inventory_manager']))
-    pprint(hosts.all.options['inventory_manager']._inventory.hosts)
-    hosts.all.options['inventory_manager']._inventory.hosts
-    results = hosts.localhost.zos_job_submit(src="DAIKI.ANSIBLE.PDS(RC12)", location="DATA_SET")
-    print('--- results.contacted ---')
-    pprint(results.contacted)
-    for result in results.contacted.values():
-        assert result["jobs"][0]["ret_code"]["code"] == 12
-        assert result["jobs"][0]["ret_code"]["msg"] == "CC 0012"
-        assert result["jobs"][0]["ret_code"]["msg_code"] == "0012"
-        assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
-        assert result.get("changed") is True
+def test_submit_ftp_jcl_RC12(localhost, ansible_adhoc):
+    store_jcl(localhost, "RC12.jcl")
+    result = localhost.zos_job_submit(src="{0}/SAMPLE".format(TEMP_PATH), location="LOCAL", wait=True).localhost
 
-def test_submit_pds_jcl_JCLERROR(ansible_adhoc):
-    hosts = ansible_adhoc(inventory='localhost', connection='local')
-    print('--- hosts.all ---')
-    pprint(hosts.all)
-    pprint(hosts.all.options)
-    pprint(vars(hosts.all.options['inventory_manager']))
-    pprint(hosts.all.options['inventory_manager']._inventory.hosts)
-    hosts.all.options['inventory_manager']._inventory.hosts
-    results = hosts.localhost.zos_job_submit(src="DAIKI.ANSIBLE.PDS(JCLERROR)", location="DATA_SET")
-    print('--- results.contacted ---')
-    pprint(results.contacted)
-    for result in results.contacted.values():
-        assert result["jobs"][0]["ret_code"]["code"] == None
-        assert result["jobs"][0]["ret_code"]["msg"] == "JCL ERROR"
-        assert result["jobs"][0]["ret_code"]["msg_code"] == None
-        assert len(result["jobs"][0]["ret_code"]["msg_txt"]) > 0
-        assert result.get("changed") is False
+    print('--- result ---')
+    pprint(result)
 
-def test_submit_pds_jcl_Abend_S013(ansible_adhoc):
-    hosts = ansible_adhoc(inventory='localhost', connection='local')
-    print('--- hosts.all ---')
-    pprint(hosts.all)
-    pprint(hosts.all.options)
-    pprint(vars(hosts.all.options['inventory_manager']))
-    pprint(hosts.all.options['inventory_manager']._inventory.hosts)
-    hosts.all.options['inventory_manager']._inventory.hosts
-    results = hosts.localhost.zos_job_submit(src="DAIKI.ANSIBLE.PDS(S013JOB)", location="DATA_SET")
-    print('--- results.contacted ---')
-    pprint(results.contacted)
-    for result in results.contacted.values():
-        assert result["jobs"][0]["ret_code"]["code"] == None
-        assert result["jobs"][0]["ret_code"]["msg"] == "ABEND S013"
-        assert result["jobs"][0]["ret_code"]["msg_code"] == "S013"
-        assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
-        assert result.get("changed") is False 
+    assert result["jobs"][0]["ret_code"]["code"] == 12
+    assert result["jobs"][0]["ret_code"]["msg"] == "CC 0012"
+    assert result["jobs"][0]["ret_code"]["msg_code"] == "0012"
+    assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
+    assert result.is_changed
+    assert result.is_successful
 
-def test_submit_pds_jcl_long_job(ansible_adhoc):
-    hosts = ansible_adhoc(inventory='localhost', connection='local')
-    print('--- hosts.all ---')
-    pprint(hosts.all)
-    pprint(hosts.all.options)
-    pprint(vars(hosts.all.options['inventory_manager']))
-    pprint(hosts.all.options['inventory_manager']._inventory.hosts)
-    hosts.all.options['inventory_manager']._inventory.hosts
-    results = hosts.localhost.zos_job_submit(src="DAIKI.ANSIBLE.PDS(SLEEP50)", location="DATA_SET", wait=True,wait_time_s=5)
-    print('--- results.contacted ---')
-    pprint(results.contacted)
-    for result in results.contacted.values():
-        assert result["jobs"][0]["ret_code"]["code"] == None
-        assert result["jobs"][0]["ret_code"]["msg"] == "JOB NOT FOUND"
-        assert result["jobs"][0]["ret_code"]["msg_code"] == "NOT FOUND"
-        assert result["jobs"][0]["ret_code"]["msg_txt"] == "The job could not be found"
+def test_submit_pds_jcl_RC12(localhost, ansible_adhoc):
+    result = localhost.zos_job_submit(src="DAIKI.ANSIBLE.PDS(RC12)", location="DATA_SET", wait=True).localhost
+
+    print('--- result ---')
+    pprint(result)
+
+    assert result["jobs"][0]["ret_code"]["code"] == 12
+    assert result["jobs"][0]["ret_code"]["msg"] == "CC 0012"
+    assert result["jobs"][0]["ret_code"]["msg_code"] == "0012"
+    assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
+    assert result.is_changed
+    assert result.is_successful
+
+def test_submit_ftp_jcl_RC12_maxrc(localhost, ansible_adhoc):
+    store_jcl(localhost, "RC12.jcl")
+    result = localhost.zos_job_submit(src="{0}/SAMPLE".format(TEMP_PATH), location="LOCAL", wait=True, max_rc=0).localhost
+
+    print('--- result ---')
+    pprint(result)
+
+    assert result["jobs"][0]["ret_code"]["code"] == 12
+    assert result["jobs"][0]["ret_code"]["msg"] == "CC 0012"
+    assert result["jobs"][0]["ret_code"]["msg_code"] == "0012"
+    assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
+    assert result.is_changed
+    assert result.is_failed
+
+def test_submit_pds_jcl_RC12_maxrc(localhost, ansible_adhoc):
+    result = localhost.zos_job_submit(src="DAIKI.ANSIBLE.PDS(RC12)", location="DATA_SET", wait=True, max_rc=0).localhost
+
+    print('--- result ---')
+    pprint(result)
+
+    assert result["jobs"][0]["ret_code"]["code"] == 12
+    assert result["jobs"][0]["ret_code"]["msg"] == "CC 0012"
+    assert result["jobs"][0]["ret_code"]["msg_code"] == "0012"
+    assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
+    assert result.is_changed
+    assert result.is_failed
+
+
+def test_submit_pds_jcl_JCLERROR(localhost, ansible_adhoc):
+    result = localhost.zos_job_submit(src="DAIKI.ANSIBLE.PDS(JCLERROR)", location="DATA_SET", wait=True).localhost
+
+    print('--- result ---')
+    pprint(result)
+
+    assert result["jobs"][0]["ret_code"]["code"] == None
+    assert result["jobs"][0]["ret_code"]["msg"] == "JCL ERROR"
+    assert result["jobs"][0]["ret_code"]["msg_code"] == None
+    assert len(result["jobs"][0]["ret_code"]["msg_txt"]) > 0
+    assert not result.is_changed
+    assert result.is_failed
+
+def test_submit_ftp_jcl_JCLERROR(localhost, ansible_adhoc):
+    store_jcl(localhost, "JCLERROR.jcl")
+    result = localhost.zos_job_submit(src="{0}/SAMPLE".format(TEMP_PATH), location="LOCAL", wait=True).localhost
+
+    print('--- result ---')
+    pprint(result)
+
+    assert result["jobs"][0]["ret_code"]["code"] == None
+    assert result["jobs"][0]["ret_code"]["msg"] == "JCL ERROR"
+    assert result["jobs"][0]["ret_code"]["msg_code"] == None
+    assert len(result["jobs"][0]["ret_code"]["msg_txt"]) > 0
+    assert not result.is_changed
+    assert result.is_failed
+
+def test_submit_pds_jcl_Abend_S013(localhost, ansible_adhoc):
+    result = localhost.zos_job_submit(src="DAIKI.ANSIBLE.PDS(S013JOB)", location="DATA_SET", wait=True).localhost
+
+    print('--- result ---')
+    pprint(result)
+
+    assert result["jobs"][0]["ret_code"]["code"] == None
+    assert result["jobs"][0]["ret_code"]["msg"] == "ABEND S013"
+    assert result["jobs"][0]["ret_code"]["msg_code"] == "S013"
+    assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
+    assert not result.is_changed
+    assert result.is_failed
+
+def test_submit_ftp_jcl_Abend_S013(localhost, ansible_adhoc):
+    store_jcl(localhost, "ABNDS013.jcl")
+    result = localhost.zos_job_submit(src="{0}/SAMPLE".format(TEMP_PATH), location="LOCAL", wait=True).localhost
+
+    print('--- result ---')
+    pprint(result)
+
+    assert result["jobs"][0]["ret_code"]["code"] == None
+    assert result["jobs"][0]["ret_code"]["msg"] == "ABEND S013"
+    assert result["jobs"][0]["ret_code"]["msg_code"] == "S013"
+    assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
+    assert not result.is_changed
+    assert result.is_failed
+
+def test_submit_pds_jcl_long_job(localhost, ansible_adhoc):
+    result = localhost.zos_job_submit(src="DAIKI.ANSIBLE.PDS(SLEEP50)", location="DATA_SET", wait=True,wait_time_s=5).localhost
+
+    print('--- result ---')
+    pprint(result)
+
+    assert result["jobs"][0]["ret_code"]["code"] == None
+    assert result["jobs"][0]["ret_code"]["msg"] == "JOB NOT FOUND"
+    assert result["jobs"][0]["ret_code"]["msg_code"] == "NOT FOUND"
+    assert len(result["jobs"][0]["ret_code"]["msg_txt"]) > 0
+    assert result.is_changed
+    assert result.is_successful
+
+def test_submit_ftp_jcl_long_job(localhost, ansible_adhoc):
+    store_jcl(localhost, "SLEEP50.jcl")
+    result = localhost.zos_job_submit(src="{0}/SAMPLE".format(TEMP_PATH), location="LOCAL", wait=True, wait_time_s=5).localhost
+
+    print('--- result ---')
+    pprint(result)
+
+    assert result["jobs"][0]["ret_code"]["code"] == None
+    assert result["jobs"][0]["ret_code"]["msg"] == "JOB NOT FOUND"
+    assert result["jobs"][0]["ret_code"]["msg_code"] == "NOT FOUND"
+    assert len(result["jobs"][0]["ret_code"]["msg_txt"]) > 0
+    assert result.is_changed
+    assert result.is_successful
 
