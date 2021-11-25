@@ -79,11 +79,6 @@ def submit_ftp_jcl(src, ftp, module):
     return jobId
 
 
-def assert_valid_return_code(max_rc, found_rc):
-    if found_rc is None or max_rc < int(found_rc):
-        raise SubmitJCLError("")
-
-
 def run_module():
     module_args = dict(
         src=dict(type="str", required=True),
@@ -240,10 +235,6 @@ def run_module():
 
     if bool(job_output_txt):
         result["jobs"] = job_output_txt
-        if wait is True and return_output is True and max_rc is not None:
-            assert_valid_return_code(
-                max_rc, result.get("jobs")[0].get("ret_code").get("code")
-            )
 
     checktime = timer()
     duration = checktime - starttime
@@ -263,6 +254,15 @@ def run_module():
             result["changed"] = False
             result["message"] = {
                 "stderr": "Submit succeeded, but job failed: " + foundissue
+            }
+            result["failed"] = True
+            module.fail_json(msg=result["message"], **result)
+        elif (wait is True and
+              return_output is True and
+              max_rc is not None and
+              max_rc < result.get("jobs")[0].get("ret_code").get("code")):
+            result["message"] = {
+                "stderr": "Submit succeeded, but the return code is more than max_rc: {0}".format(max_rc)
             }
             result["failed"] = True
             module.fail_json(msg=result["message"], **result)
