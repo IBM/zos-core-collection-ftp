@@ -31,7 +31,7 @@ JCL_FILE_CONTENTS = """
 TEMP_PATH = "/tmp/ansible/jcl"
 
 # The positive path test
-def test_zos_job_submit_positive_path(ansible_adhoc):
+def test_submit_ftp_jcl(ansible_adhoc):
     hosts = ansible_adhoc(inventory='localhost', connection='local')
     hosts.localhost.file(path=TEMP_PATH, state="directory")
     hosts.localhost.shell(
@@ -52,7 +52,7 @@ def test_zos_job_submit_positive_path(ansible_adhoc):
     #    assert result.get("content") is not None
 
 
-def test_zos_job_submit_uss(ansible_adhoc):
+def test_submit_pds_jcl(ansible_adhoc):
     hosts = ansible_adhoc(inventory='localhost', connection='local')
     print('--- hosts.all ---')
     pprint(hosts.all)
@@ -68,6 +68,7 @@ def test_zos_job_submit_uss(ansible_adhoc):
         assert result.get("changed") is True
     #    assert result.get("content") is not None
 
+# The negative path test
 def test_submit_pds_jcl_RC12(ansible_adhoc):
     hosts = ansible_adhoc(inventory='localhost', connection='local')
     print('--- hosts.all ---')
@@ -103,7 +104,7 @@ def test_submit_pds_jcl_JCLERROR(ansible_adhoc):
         assert len(result["jobs"][0]["ret_code"]["msg_txt"]) > 0
         assert result.get("changed") is False
 
-def test_zos_job_submit_uss_S013(ansible_adhoc):
+def test_submit_pds_jcl_Abend_S013(ansible_adhoc):
     hosts = ansible_adhoc(inventory='localhost', connection='local')
     print('--- hosts.all ---')
     pprint(hosts.all)
@@ -120,7 +121,7 @@ def test_zos_job_submit_uss_S013(ansible_adhoc):
         assert result["jobs"][0]["ret_code"]["msg_txt"] == ""
         assert result.get("changed") is False 
 
-def test_zos_job_submit_uss_long_job(ansible_adhoc):
+def test_submit_pds_jcl_long_job(ansible_adhoc):
     hosts = ansible_adhoc(inventory='localhost', connection='local')
     print('--- hosts.all ---')
     pprint(hosts.all)
