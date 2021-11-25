@@ -85,6 +85,24 @@ def test_submit_pds_jcl_RC12(ansible_adhoc):
         assert result["jobs"][0]["ret_code"]["msg_code"] == "0012"
         assert result.get("changed") is True
 
+def test_submit_pds_jcl_JCLERROR(ansible_adhoc):
+    hosts = ansible_adhoc(inventory='localhost', connection='local')
+    print('--- hosts.all ---')
+    pprint(hosts.all)
+    pprint(hosts.all.options)
+    pprint(vars(hosts.all.options['inventory_manager']))
+    pprint(hosts.all.options['inventory_manager']._inventory.hosts)
+    hosts.all.options['inventory_manager']._inventory.hosts
+    results = hosts.localhost.zos_job_submit(src="DAIKI.ANSIBLE.PDS(JCLERROR)", location="DATA_SET")
+    print('--- results.contacted ---')
+    pprint(results.contacted)
+    for result in results.contacted.values():
+        assert result["jobs"][0]["ret_code"]["code"] == None
+        assert result["jobs"][0]["ret_code"]["msg"] == "JCL ERROR"
+        assert result["jobs"][0]["ret_code"]["msg_code"] == None
+        assert len(result["jobs"][0]["ret_code"]["msg_txt"]) > 0
+        assert result.get("changed") is False
+
 def test_zos_job_submit_uss_S013(ansible_adhoc):
     hosts = ansible_adhoc(inventory='localhost', connection='local')
     print('--- hosts.all ---')
