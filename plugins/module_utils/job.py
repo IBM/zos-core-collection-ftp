@@ -358,7 +358,7 @@ def wait_jobs_completion(ftp, jobId, wait_time_s):
     duration = 0
     jobs = []
     ftp.dir(jobs.append)
-    while not re.search(jobId + '  OUTPUT', "\n".join(jobs)):
+    while not re.search(jobId + '.*  OUTPUT', "\n".join(jobs)):
         sleep(0.5)
         checktime = timer()
         duration = round(checktime - starttime)
