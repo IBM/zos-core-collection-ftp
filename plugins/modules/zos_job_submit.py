@@ -237,7 +237,7 @@ def run_module():
         result["jobs"] = job_output_txt
 
     checktime = timer()
-    duration = checktime - starttime
+    duration = round(checktime - starttime)
     result["duration"] = duration
     result["changed"] = True
 
