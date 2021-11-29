@@ -19,6 +19,9 @@ IBM z/OS core collectionが使えるようになったら、このcollectionか�
 * zos_job_output
 
 
+また、FTPのセキュリティを高めるために、FTPS(FTP over SSL/TLS)を利用することができます。
+
+
 前提
 ===========
 
@@ -160,6 +163,30 @@ export FTP_SOCKS_PORT=10022
  StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ;sleep 30'
 ```
 
+
+FTPSの利用
+=========
+現在、TLS 1.2をサポートしています。FTPSを使う場合、FTP_TLS_VERSION環境変数に"1.2"を設定し、FTP_TLS_CERT_FILE環境変数にFTPSの証明書のパスを指定します。
+
+
+```bash
+export FTP_USERID=ftp_userid
+export FTP_PASSWORD=ftp_password
+export FTP_HOST=ftp_hostname
+export FTP_PORT=ftps_port
+export FTP_JOB_CLASS=job_class
+export FTP_JOB_MSGCLASS=job_msgclass
+export FTP_TLS_VERSION=1.2
+export FTP_TLS_CERT_FILE=certificate.pem
+```
+
+
+FTPSを使わない場合は、FTP_TLS_VERSION環境変数の定義を削除しておいてください。
+
+
+```bash
+unst FTP_TLS_VERSION
+```
 
 
 開発者

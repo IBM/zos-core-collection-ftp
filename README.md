@@ -18,6 +18,9 @@ You can use the following modules. For guides and reference, please review the [
 * zos_job_output
 
 
+You can also use FTPS (FTP over SSL/TLS) to settle the FTP security issue.
+
+
 Requirement
 ===========
 
@@ -161,6 +164,30 @@ Finally, add a task to establish an SSH tunnel in the beginning of the tasks in 
         bash -c '/usr/bin/ssh -CfNq -D 127.0.0.1:10022 {{ jumphost_ssh_user }}@{{ jumphost_ip_address }} -i $JUMPHOST_SSH_PRIVATE_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ;sleep 30'
 ```
 
+
+How to establish FTPS secure connection
+======
+Currently, you can use TLS 1.2. To establish FTPS secure connection, you have to set 1.2 to FTP_TLS_VERSION environment variable and the path of the FTPS certificate to FTP_TLS_CERT_FILE environment variable.
+
+
+```bash
+export FTP_USERID=ftp_userid
+export FTP_PASSWORD=ftp_password
+export FTP_HOST=ftp_hostname
+export FTP_PORT=ftps_port
+export FTP_JOB_CLASS=job_class
+export FTP_JOB_MSGCLASS=job_msgclass
+export FTP_TLS_VERSION=1.2
+export FTP_TLS_CERT_FILE=certificate.pem
+```
+
+
+When you don't use FTPS, delete the definition of the FTP_TLS_VERSION environment variable.
+
+
+```bash
+unst FTP_TLS_VERSION
+```
 
 
 Author
