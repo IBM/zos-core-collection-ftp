@@ -21,12 +21,12 @@ def job_card_contents():
     job_card_template = """//{{ userid }}1  JOB CLASS={{ class }},MSGLEVEL=(1,1),MSGCLASS={{ msgclass }}
 
 """
-    job_card_contens = Template(job_card_template).render({
+    job_card_contents = Template(job_card_template).render({
         'userid': environ.get("FTP_USERID").upper(),
         'class': environ.get("FTP_JOB_CLASS").upper(),
         'msgclass': environ.get("FTP_JOB_MSGCLASS").upper(),
     })
-    return job_card_contens
+    return job_card_contents
 
 def job_output(ftp, wait_time_s, job_id=None, owner=None, job_name=None, dd_name=None):
     """Get the output from a z/OS job based on various search criteria.
