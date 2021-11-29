@@ -16,6 +16,7 @@ IBM z/OS core collectionが使えるようになったら、このcollectionか�
 * zos_job_submit
 * zos_operator
 * zos_tso_command
+* zos_job_output
 
 
 前提
@@ -112,6 +113,9 @@ site.yml
       zos_tso_command:
         commands:
           - "LU DAIKI"
+    - name: Display a job output
+      zos_job_output:
+        job_id: "JOB08047"
 
 ```
 

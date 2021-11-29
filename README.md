@@ -15,6 +15,7 @@ You can use the following modules. For guides and reference, please review the [
 * zos_job_submit
 * zos_operator
 * zos_tso_command
+* zos_job_output
 
 
 Requirement
@@ -114,6 +115,9 @@ site.yml
       zos_tso_command:
         commands:
           - "LU DAIKI"
+    - name: Display a job output
+      zos_job_output:
+        job_id: "JOB08047"
 
 ```
 
