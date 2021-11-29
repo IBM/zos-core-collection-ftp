@@ -180,7 +180,7 @@ def test_submit_pds_jcl_long_job(localhost, ansible_adhoc):
     assert result["jobs"][0]["ret_code"]["code"] == None
     assert result["jobs"][0]["ret_code"]["msg"] == "JOB NOT FOUND"
     assert result["jobs"][0]["ret_code"]["msg_code"] == "NOT FOUND"
-    assert len(result["jobs"][0]["ret_code"]["msg_txt"]) > 0
+    assert "Timeout" in result["message"]["stdout"]
     assert result.is_changed
     assert result.is_successful
 
@@ -194,7 +194,7 @@ def test_submit_ftp_jcl_long_job(localhost, ansible_adhoc):
     assert result["jobs"][0]["ret_code"]["code"] == None
     assert result["jobs"][0]["ret_code"]["msg"] == "JOB NOT FOUND"
     assert result["jobs"][0]["ret_code"]["msg_code"] == "NOT FOUND"
-    assert len(result["jobs"][0]["ret_code"]["msg_txt"]) > 0
+    assert "Timeout" in result["message"]["stdout"]
     assert result.is_changed
     assert result.is_successful
 
