@@ -44,9 +44,10 @@ def job_output(ftp, wait_time_s, job_id=None, owner=None, job_name=None, dd_name
     Returns:
         list[dict] -- The output information for a list of jobs matching specified criteria.
     """
-    job_name = "*"
-    owner = "*"
-    dd_name = ""
+    job_id = job_id or "*"
+    owner = owner or "*"
+    job_name = job_name or "*"
+    dd_name = dd_name or ""
 
     job_detail = _get_job_output(ftp, wait_time_s, job_id, owner, job_name, dd_name)
 
