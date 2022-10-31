@@ -235,6 +235,9 @@ def run_module():
 
     if bool(job_output_txt):
         result["jobs"] = job_output_txt
+        if not return_output:
+            for job in result.get("jobs", []):
+                job["ddnames"] = []
 
     checktime = timer()
     duration = round(checktime - starttime)
